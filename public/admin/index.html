@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>UFQ Admin</title>
+  <link rel="icon" href="/assets/img/favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<main class="login" id="login-view" hidden>
+  <form class="card login-card" id="login-form">
+    <img src="/assets/img/logo.png" alt="UFQ" width="96" height="96">
+    <h1>UFQ Admin <span class="ar">لوحة التحكم</span></h1>
+    <label>Password <span class="ar">كلمة المرور</span>
+      <input type="password" name="password" autocomplete="current-password" required autofocus>
+    </label>
+    <button type="submit" class="btn btn-primary">Log in · دخول</button>
+    <p class="msg error" id="login-error" hidden></p>
+  </form>
+</main>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="admin-view" hidden>
+  <header class="topbar">
+    <a href="/" class="brand" target="_blank" rel="noopener">
+      <img src="/assets/img/logo.png" alt="" width="40" height="40">
+      <span><strong>UFQ</strong> Admin</span>
+    </a>
+    <div class="topbar-actions">
+      <a href="/" target="_blank" rel="noopener" class="btn btn-ghost">View site · الموقع</a>
+      <button type="button" class="btn btn-ghost" id="logout">Log out · خروج</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <nav class="tabs" role="tablist">
+      <button type="button" class="tab active" data-tab="certificate" role="tab">Certificates · الشهادات</button>
+      <button type="button" class="tab" data-tab="video" role="tab">Videos · الفيديوهات</button>
+    </nav>
+
+    <!-- Add form (same form for both tabs; fields switch with the tab) -->
+    <form class="card" id="add-form">
+      <h2 id="add-title">Add a certificate · إضافة شهادة</h2>
+
+      <div class="grid2">
+        <label>Title in Arabic <span class="ar">العنوان بالعربي</span>
+          <input type="text" name="titleAr" dir="rtl" maxlength="200">
+        </label>
+        <label>Title in English <span class="ar">العنوان بالإنجليزي</span>
+          <input type="text" name="titleEn" dir="ltr" maxlength="200">
+        </label>
+      </div>
+
+      <div class="video-source" id="video-source" hidden>
+        <label class="radio"><input type="radio" name="source" value="file" checked> Upload a video file · رفع ملف فيديو</label>
+        <label class="radio"><input type="radio" name="source" value="youtube"> YouTube link · رابط يوتيوب</label>
+      </div>
+
+      <label id="file-field">
+        <span id="file-label">File: image (JPG, PNG, WebP) or PDF · صورة أو PDF</span>
+        <input type="file" name="file" id="file-input" accept="image/jpeg,image/png,image/webp,application/pdf">
+      </label>
+
+      <label id="youtube-field" hidden>YouTube link · رابط يوتيوب
+        <input type="url" name="youtube" placeholder="https://www.youtube.com/watch?v=..." dir="ltr">
+      </label>
+
+      <div class="progress" id="progress" hidden><div class="bar"></div><span>0%</span></div>
+
+      <button type="submit" class="btn btn-primary" id="add-button">Upload · رفع</button>
+      <p class="msg" id="add-msg" hidden></p>
+    </form>
+
+    <section class="card">
+      <h2 id="list-title">Certificates on the site · الشهادات على الموقع</h2>
+      <p class="empty" id="empty" hidden>Nothing here yet · لا يوجد شيء بعد</p>
+      <ul class="items" id="items"></ul>
+    </section>
+  </main>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>

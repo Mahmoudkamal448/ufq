@@ -1,0 +1,23 @@
+# Run the UFQ website:
+#   cp .env.example .env      # then set ADMIN_PASSWORD in .env
+#   docker compose up -d --build
+# Site:  http://localhost:8080        Admin: http://localhost:8080/admin/
+
+name: ufq-website
+
+services:
+  web:
+    build: .
+    image: ufq-website:latest
+    container_name: ufq-website
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "${WEB_PORT:-8080}:3000"
+    volumes:
+      # Uploaded certificates and videos are kept here, so they survive
+      # restarts and image updates. Back this up!
+      - ufq-data:/data
+
+volumes:
+  ufq-data:
