@@ -1,7 +1,8 @@
 (function () {
   "use strict";
 
-  var STORAGE_KEY = "ufq-lang";
+  // Only set when the visitor clicks the language button (English is the default).
+  var STORAGE_KEY = "ufq-lang-choice";
   var nodes = document.querySelectorAll("[data-i18n]");
 
   // All site text, in both languages, is embedded in the page by the server.
@@ -12,7 +13,7 @@
   }
 
   function setLang(lang) {
-    if (lang !== "en") lang = "ar";
+    if (lang !== "ar") lang = "en";
     var other = lang === "ar" ? "en" : "ar";
     nodes.forEach(function (el) {
       var value = lookup(el.getAttribute("data-i18n"));
@@ -22,16 +23,17 @@
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
     document.title = data.title[lang];
     toggle.textContent = lang === "ar" ? "EN" : "عربي";
-    try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) { /* storage blocked */ }
     renderMedia();
   }
 
   var toggle = document.getElementById("lang-toggle");
   toggle.addEventListener("click", function () {
-    setLang(document.documentElement.lang === "ar" ? "en" : "ar");
+    var lang = document.documentElement.lang === "ar" ? "en" : "ar";
+    setLang(lang);
+    try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) { /* storage blocked */ }
   });
 
-  // Initial language: ?lang=en|ar  >  saved choice  >  Arabic
+  // Initial language: ?lang=en|ar  >  saved choice  >  English (from the server)
   var initial = new URLSearchParams(location.search).get("lang");
   if (!initial) {
     try { initial = localStorage.getItem(STORAGE_KEY); } catch (e) { initial = null; }

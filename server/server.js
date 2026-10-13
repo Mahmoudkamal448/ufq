@@ -355,7 +355,7 @@ app.post("/api/images", requireAdmin, (req, res, next) => {
 // ---- Pages ----
 async function sendHome(req, res, next, status = 200) {
   try {
-    const lang = req.query.lang === "en" ? "en" : "ar";
+    const lang = req.query.lang === "ar" ? "ar" : "en"; // English by default
     res.status(status).type("html").setHeader("Cache-Control", "no-cache");
     res.send(renderPage(await content.get(), lang));
   } catch (err) {

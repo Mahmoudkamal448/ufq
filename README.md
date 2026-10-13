@@ -4,7 +4,7 @@ Bilingual (Arabic / English) company website for **UFQ**, with an **admin page**
 certificates and videos. Everything runs in one Docker container.
 
 - **Public site:** Home (logo + company name) · Our Services · Certificates · Videos · About Us · Contact
-  - Arabic is the default (right-to-left). The **EN / عربي** button switches language and the choice is remembered.
+  - English is the default. The **EN / عربي** button switches to Arabic (right-to-left) and back, and the visitor's choice is remembered.
   - Link straight to a language with `?lang=en` or `?lang=ar`.
   - The **Videos** section and the **Our certificates** gallery only appear once you add something from the admin page.
 - **Admin page:** `/admin/`, protected by a password
