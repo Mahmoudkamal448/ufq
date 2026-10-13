@@ -366,7 +366,8 @@ app.get(["/", "/index.html"], (req, res, next) => sendHome(req, res, next));
 
 // ---- Files ----
 app.use("/uploads", express.static(UPLOAD_DIR, { maxAge: "7d", index: false, dotfiles: "deny" }));
-app.use(express.static(PUBLIC_DIR, { maxAge: "1h" }));
+// No long cache: browsers re-check (cheap 304) so updates show up right away.
+app.use(express.static(PUBLIC_DIR, { maxAge: 0 }));
 
 app.use("/api", (req, res) => res.status(404).json({ error: "Not found" }));
 app.use((req, res, next) => sendHome(req, res, next, 404));

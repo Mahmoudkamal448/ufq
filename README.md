@@ -71,13 +71,13 @@ docker run --rm -v ufq-website_ufq-data:/data -v "$PWD":/backup alpine tar xzf /
 **Option B – ship the image as a file (no source code needed on the server):**
 
 ```bash
-docker build -t ufq-website:latest .
-docker save ufq-website:latest -o ufq-website.tar
-# copy ufq-website.tar to the server, then on the server:
-docker load -i ufq-website.tar
+docker build -t ufq:latest .
+docker save ufq:latest -o ufq.tar
+# copy ufq.tar to the server, then on the server:
+docker load -i ufq.tar
 docker run -d --name ufq-website --restart unless-stopped \
   -p 80:3000 -e ADMIN_PASSWORD='your-strong-password' \
-  -v ufq-data:/data ufq-website:latest
+  -v ufq-data:/data ufq:latest
 ```
 
 **Option C – a registry (Docker Hub, GHCR…):** `docker tag` + `docker push` the image, then

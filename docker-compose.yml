@@ -8,7 +8,10 @@ name: ufq-website
 services:
   web:
     build: .
-    image: ufq-website:latest
+    # Always rebuild from the current code on "docker compose up", so a
+    # "git pull" is never ignored because an older image already exists.
+    pull_policy: build
+    image: ufq:latest
     container_name: ufq-website
     restart: unless-stopped
     env_file: .env
