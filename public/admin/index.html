@@ -44,6 +44,7 @@
       <button type="button" class="tab active" data-tab="content" role="tab">Site content · محتوى الموقع</button>
       <button type="button" class="tab" data-tab="certificate" role="tab">Certificates · الشهادات</button>
       <button type="button" class="tab" data-tab="video" role="tab">Videos · الفيديوهات</button>
+      <button type="button" class="tab" data-tab="qr" role="tab">QR code · كود QR</button>
     </nav>
 
     <!-- ============ SITE CONTENT EDITOR ============ -->
@@ -60,6 +61,43 @@
         <button type="button" class="btn btn-small" id="reset-content">Restore defaults · استرجاع الأصل</button>
         <button type="button" class="btn btn-primary" id="save-content">Save changes · حفظ التغييرات</button>
       </div>
+    </div>
+
+    <!-- ============ QR CODE ============ -->
+    <div id="qr-view" hidden>
+      <section class="card qr-card">
+        <div class="qr-options">
+          <h2>QR code · كود QR</h2>
+          <p class="hint">Print it or share it: scanning it opens the website.<br>
+            <span class="ar">اطبعه أو شاركه: عند مسحه يفتح الموقع.</span></p>
+
+          <div class="field">
+            <div class="field-label">Opens · يفتح</div>
+            <label class="radio"><input type="radio" name="qr-target" value="certificates" checked> Certificates section · قسم الشهادات</label>
+            <label class="radio"><input type="radio" name="qr-target" value="home"> Home page · الصفحة الرئيسية</label>
+          </div>
+          <div class="field">
+            <div class="field-label">Language · اللغة</div>
+            <label class="radio"><input type="radio" name="qr-lang" value="en" checked> English</label>
+            <label class="radio"><input type="radio" name="qr-lang" value="ar"> العربية</label>
+          </div>
+
+          <div class="field">
+            <div class="field-label">Link in the QR code · الرابط داخل الكود</div>
+            <a class="qr-link" id="qr-link" target="_blank" rel="noopener" dir="ltr"></a>
+            <p class="hint warn" id="qr-local" hidden>⚠ This is a local address – phones can't open it. Open this admin page from the
+              real website address (e.g. https://….sslip.io/admin/) to get a QR code that works everywhere.</p>
+          </div>
+
+          <div class="qr-buttons">
+            <a class="btn btn-primary" id="qr-png" download>Download PNG · تحميل</a>
+            <a class="btn btn-small" id="qr-svg" download>Download SVG (for printing) · للطباعة</a>
+          </div>
+        </div>
+        <div class="qr-preview">
+          <img id="qr-img" alt="QR code" width="280" height="280">
+        </div>
+      </section>
     </div>
 
     <!-- ============ CERTIFICATES / VIDEOS ============ -->

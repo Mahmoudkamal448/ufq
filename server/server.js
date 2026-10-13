@@ -6,6 +6,7 @@ const fsp = fs.promises;
 const crypto = require("crypto");
 const express = require("express");
 const multer = require("multer");
+const QRCode = require("qrcode");
 const { createStore, SCHEMA } = require("./content");
 const { renderPage } = require("./render");
 
@@ -352,7 +353,42 @@ app.post("/api/images", requireAdmin, (req, res, next) => {
   res.status(201).json({ url: "/uploads/" + req.file.filename });
 });
 
+// ---- QR code (admin): a QR image for a link to this site ----
+app.get("/api/qr", requireAdmin, async (req, res, next) => {
+  try {
+    const url = String(req.query.url || "");
+    if (!/^https?:\/\/\S+$/i.test(url) || url.length > 500) {
+      return res.status(400).json({ error: "Invalid link" });
+    }
+    const options = {
+      errorCorrectionLevel: "M",
+      margin: 2,
+      color: { dark: "#143562", light: "#ffffff" }
+    };
+    const name = "ufq-qr-" + (url.includes("/certificates") ? "certificates" : "website");
+    const download = req.query.download === "1";
+    if (req.query.format === "png") {
+      const png = await QRCode.toBuffer(url, { ...options, type: "png", width: 1024 });
+      res.type("png");
+      if (download) res.attachment(name + ".png");
+      return res.send(png);
+    }
+    const svg = await QRCode.toString(url, { ...options, type: "svg" });
+    res.type("image/svg+xml");
+    if (download) res.attachment(name + ".svg");
+    res.send(svg);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ---- Pages ----
+// Short link used by the QR code: opens the site at the Certificates section.
+app.get("/certificates", (req, res) => {
+  const lang = req.query.lang === "ar" ? "?lang=ar" : "";
+  res.redirect(302, "/" + lang + "#certificates");
+});
+
 async function sendHome(req, res, next, status = 200) {
   try {
     const lang = req.query.lang === "ar" ? "ar" : "en"; // English by default

@@ -76,8 +76,10 @@
       tab = button.getAttribute("data-tab");
       document.querySelectorAll(".tab").forEach(function (b) { b.classList.toggle("active", b === button); });
       $("content-view").hidden = tab !== "content";
-      $("media-view").hidden = tab === "content";
-      if (tab === "content") return;
+      $("qr-view").hidden = tab !== "qr";
+      $("media-view").hidden = tab === "content" || tab === "qr";
+      if (tab === "qr") updateQr();
+      if (tab === "content" || tab === "qr") return;
       $("add-title").textContent = TEXT[tab].add;
       $("list-title").textContent = TEXT[tab].list;
       $("file-label").textContent = TEXT[tab].fileLabel;
@@ -181,7 +183,7 @@
   }
 
   function render() {
-    if (tab === "content") return;
+    if (tab === "content" || tab === "qr") return;
     var list = tab === "certificate" ? media.certificates : media.videos;
     var ul = $("items");
     ul.textContent = "";
@@ -456,6 +458,25 @@
       renderSection();
       show($("content-msg"), "Restored ✔ · تم الاسترجاع", "ok");
     }).catch(function (err) { show($("content-msg"), err.message, "error"); });
+  });
+
+  // ---------------- QR code ----------------
+  // Uses the address this admin page is opened from, so it always matches the live site.
+  function updateQr() {
+    var target = document.querySelector('input[name="qr-target"]:checked').value;
+    var lang = document.querySelector('input[name="qr-lang"]:checked').value;
+    var url = location.origin + (target === "certificates" ? "/certificates" : "/") + (lang === "ar" ? "?lang=ar" : "");
+    var q = "/api/qr?url=" + encodeURIComponent(url);
+
+    $("qr-link").textContent = url;
+    $("qr-link").href = url;
+    $("qr-img").src = q + "&format=svg";
+    $("qr-png").href = q + "&format=png&download=1";
+    $("qr-svg").href = q + "&format=svg&download=1";
+    $("qr-local").hidden = !/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(location.hostname);
+  }
+  document.querySelectorAll('input[name="qr-target"], input[name="qr-lang"]').forEach(function (r) {
+    r.addEventListener("change", updateQr);
   });
 
   // ---------------- Start ----------------

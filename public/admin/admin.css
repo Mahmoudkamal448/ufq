@@ -190,3 +190,21 @@ input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   .savebar { justify-content: center; }
   .unsaved { width: 100%; text-align: center; margin: 0; }
 }
+
+/* ---------- QR code ---------- */
+.qr-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px; align-items: center; }
+.hint { color: var(--muted); margin: 0 0 20px; }
+.hint .ar { display: inline; font-size: 1em; }
+.hint.warn { color: #b26a00; font-weight: 600; margin: 8px 0 0; }
+.qr-options .radio { display: flex; margin: 0 0 6px; }
+.qr-link { display: block; font-weight: 700; color: var(--accent); word-break: break-all; }
+.qr-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+.qr-preview img {
+  display: block; width: 280px; height: 280px; padding: 12px; background: #fff;
+  border: 1px solid var(--line); border-radius: var(--radius);
+}
+@media (max-width: 760px) {
+  .qr-card { grid-template-columns: minmax(0, 1fr); }
+  .qr-preview { order: -1; justify-self: center; }
+  .qr-preview img { width: 240px; height: 240px; }
+}

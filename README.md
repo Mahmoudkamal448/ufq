@@ -16,6 +16,9 @@ certificates and videos. Everything runs in one Docker container.
   - **Certificates:** upload an image (JPG, PNG, WebP) or a PDF, with an Arabic and an English title.
   - **Videos:** upload a video file (MP4, WebM, MOV) **or** paste a YouTube link.
   - Edit titles or delete certificates/videos at any time.
+  - **QR code:** download a QR code (PNG, or SVG for printing) that opens the site at the
+    Certificates section (or the home page), in English or Arabic. Open the admin page from the real
+    site address so the QR code contains that address. The short link `/certificates` also works on its own.
 
 ## Run it with Docker
 
