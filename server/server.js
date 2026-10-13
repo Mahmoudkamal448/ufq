@@ -6,6 +6,8 @@ const fsp = fs.promises;
 const crypto = require("crypto");
 const express = require("express");
 const multer = require("multer");
+const { createStore, SCHEMA } = require("./content");
+const { renderPage } = require("./render");
 
 // ---------------------------------------------------------------------------
 // Settings (all from environment variables)
@@ -30,6 +32,7 @@ const SESSION_SECRET =
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 const MEDIA_FILE = path.join(DATA_DIR, "media.json");
+const CONTENT_FILE = path.join(DATA_DIR, "content.json");
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 // Allowed upload types. SVG/HTML are deliberately not allowed (they can carry scripts).
@@ -39,6 +42,12 @@ const ALLOWED = {
     "image/png": ".png",
     "image/webp": ".webp",
     "application/pdf": ".pdf"
+  },
+  // Pictures used inside the site content (e.g. the logo)
+  image: {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp"
   },
   video: {
     "video/mp4": ".mp4",
@@ -241,7 +250,7 @@ const upload = multer({
 });
 
 function checkType(req, res, next) {
-  if (ALLOWED[req.params.type]) return next();
+  if (ALLOWED[req.params.type] && req.params.type !== "image") return next();
   res.status(404).json({ error: "Unknown type" });
 }
 
@@ -307,12 +316,60 @@ app.delete("/api/media/:id", requireAdmin, async (req, res, next) => {
   }
 });
 
+// ---- Admin: site content (texts, services, contact details, logo…) ----
+const content = createStore(CONTENT_FILE);
+
+app.get("/api/content", requireAdmin, async (req, res, next) => {
+  try {
+    res.json({ schema: SCHEMA, content: await content.get() });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.put("/api/content", requireAdmin, express.json({ limit: "1mb" }), async (req, res, next) => {
+  try {
+    res.json({ content: await content.save(req.body) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/api/content/reset", requireAdmin, async (req, res, next) => {
+  try {
+    res.json({ content: await content.reset() });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Upload a picture for use in the content (returns its URL)
+app.post("/api/images", requireAdmin, (req, res, next) => {
+  req.params.type = "image";
+  next();
+}, upload.single("file"), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "Choose an image" });
+  res.status(201).json({ url: "/uploads/" + req.file.filename });
+});
+
+// ---- Pages ----
+async function sendHome(req, res, next, status = 200) {
+  try {
+    const lang = req.query.lang === "en" ? "en" : "ar";
+    res.status(status).type("html").setHeader("Cache-Control", "no-cache");
+    res.send(renderPage(await content.get(), lang));
+  } catch (err) {
+    next(err);
+  }
+}
+app.get(["/", "/index.html"], (req, res, next) => sendHome(req, res, next));
+
 // ---- Files ----
 app.use("/uploads", express.static(UPLOAD_DIR, { maxAge: "7d", index: false, dotfiles: "deny" }));
 app.use(express.static(PUBLIC_DIR, { maxAge: "1h" }));
 
 app.use("/api", (req, res) => res.status(404).json({ error: "Not found" }));
-app.use((req, res) => res.status(404).sendFile(path.join(PUBLIC_DIR, "index.html")));
+app.use((req, res, next) => sendHome(req, res, next, 404));
 
 // ---- Errors ----
 // eslint-disable-next-line no-unused-vars

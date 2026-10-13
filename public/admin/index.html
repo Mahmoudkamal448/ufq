@@ -41,10 +41,29 @@
 
   <main class="wrap">
     <nav class="tabs" role="tablist">
-      <button type="button" class="tab active" data-tab="certificate" role="tab">Certificates · الشهادات</button>
+      <button type="button" class="tab active" data-tab="content" role="tab">Site content · محتوى الموقع</button>
+      <button type="button" class="tab" data-tab="certificate" role="tab">Certificates · الشهادات</button>
       <button type="button" class="tab" data-tab="video" role="tab">Videos · الفيديوهات</button>
     </nav>
 
+    <!-- ============ SITE CONTENT EDITOR ============ -->
+    <div id="content-view">
+      <div class="content-layout">
+        <nav class="sections" id="sections" aria-label="Sections"></nav>
+        <form class="card content-form" id="content-form" novalidate>
+          <div id="section-fields"></div>
+        </form>
+      </div>
+      <div class="savebar">
+        <span class="unsaved" id="unsaved" hidden>● Unsaved changes · تغييرات غير محفوظة</span>
+        <span class="msg" id="content-msg" hidden></span>
+        <button type="button" class="btn btn-small" id="reset-content">Restore defaults · استرجاع الأصل</button>
+        <button type="button" class="btn btn-primary" id="save-content">Save changes · حفظ التغييرات</button>
+      </div>
+    </div>
+
+    <!-- ============ CERTIFICATES / VIDEOS ============ -->
+    <div id="media-view" hidden>
     <!-- Add form (same form for both tabs; fields switch with the tab) -->
     <form class="card" id="add-form">
       <h2 id="add-title">Add a certificate · إضافة شهادة</h2>
@@ -83,6 +102,7 @@
       <p class="empty" id="empty" hidden>Nothing here yet · لا يوجد شيء بعد</p>
       <ul class="items" id="items"></ul>
     </section>
+    </div>
   </main>
 </div>
 

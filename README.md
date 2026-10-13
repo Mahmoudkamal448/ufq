@@ -8,9 +8,14 @@ certificates and videos. Everything runs in one Docker container.
   - Link straight to a language with `?lang=en` or `?lang=ar`.
   - The **Videos** section and the **Our certificates** gallery only appear once you add something from the admin page.
 - **Admin page:** `/admin/`, protected by a password
+  - **Site content:** edit every section of the site in Arabic and English, with no code:
+    logo & company name, menu, home banner, services (add / remove / reorder services and their points),
+    certificate badges, videos section, about us & "why choose us", contact details (phone, WhatsApp,
+    email, Facebook / Instagram / LinkedIn, address) and the footer. Press **Save changes** and the site
+    updates immediately. **Restore defaults** brings back the original texts.
   - **Certificates:** upload an image (JPG, PNG, WebP) or a PDF, with an Arabic and an English title.
   - **Videos:** upload a video file (MP4, WebM, MOV) **or** paste a YouTube link.
-  - Edit titles or delete items at any time. Changes show on the site immediately.
+  - Edit titles or delete certificates/videos at any time.
 
 ## Run it with Docker
 
@@ -85,18 +90,44 @@ To carry existing uploads to the new server, use the backup/restore commands abo
 When the site is public, put it behind HTTPS (for example Caddy, Nginx Proxy Manager or Cloudflare)
 so the admin password isn't sent in plain text. The app already works behind a reverse proxy.
 
-## Editing the site text
+## Editing the site
+
+All texts, the logo and contact details are edited from **/admin/ → Site content**. They are saved in the
+`ufq-data` volume (`content.json`) together with the uploads, so the backup above covers them too.
+If an English text is left empty, the Arabic one is shown instead (and the other way round).
+
+For a developer:
 
 | What | Where |
 |---|---|
-| Arabic text | `public/index.html` (the text inside each element) |
-| English text | `public/assets/js/i18n.js` (same keys as the `data-i18n` attributes in `index.html`) |
-| Colours, fonts, layout | `public/assets/css/style.css` (colours at the top in `:root`) |
-| Logo | `public/assets/img/logo.png` and the browser-tab icon `favicon.png` |
-| Phone / WhatsApp | search for `27687519` in `index.html` |
+| Default texts, and which fields the admin page shows | `server/content-schema.js` |
+| Page layout (HTML) | `server/render.js` |
+| Colours, fonts, styling | `public/assets/css/style.css` (colours at the top in `:root`) |
+| Browser-tab icon | `public/assets/img/favicon.png` |
 
-When you add new text, give it a `data-i18n="some.key"` attribute in `index.html` and add the English
-for `some.key` in `i18n.js`. Rebuild afterwards: `docker compose up -d --build`.
+To add a new editable field: add it to `SCHEMA` and `DEFAULTS` in `content-schema.js`, then use it in
+`render.js`. The admin form picks it up automatically. Rebuild afterwards: `docker compose up -d --build`.
+
+## Running on Windows
+
+Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (keep "Use WSL 2" ticked) and
+[Git](https://git-scm.com/download/win), start Docker Desktop, then in PowerShell:
+
+```powershell
+git clone https://github.com/Mahmoudkamal448/ufq.git
+cd ufq
+copy .env.example .env
+notepad .env                  # set ADMIN_PASSWORD, save, close
+docker compose up -d --build
+```
+
+Without Docker (Node.js 20+), in PowerShell:
+
+```powershell
+npm install
+$env:ADMIN_PASSWORD="MyStrongPass123"; $env:DATA_DIR=".\data"; $env:PORT="8080"
+npm start
+```
 
 ## Running without Docker (for development)
 
@@ -110,10 +141,13 @@ npm run dev        # http://localhost:3000 – admin password is "admin1234", up
 ## Project layout
 
 ```
-server/server.js     web server + admin API (Express)
-public/              the website (HTML, CSS, JS, images)
-public/admin/        the admin page
-Dockerfile           container image
-docker-compose.yml   one-command start, with the ufq-data volume
-.env.example         settings template
+server/server.js          web server + admin API (Express)
+server/content-schema.js  editable fields + default texts
+server/content.js         saves/validates the site content
+server/render.js          builds the home page from the content
+public/                   CSS, JS, images
+public/admin/             the admin page
+Dockerfile                container image
+docker-compose.yml        one-command start, with the ufq-data volume
+.env.example              settings template
 ```

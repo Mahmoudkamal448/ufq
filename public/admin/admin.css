@@ -111,3 +111,82 @@ input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   .thumb { width: 100%; height: 160px; }
   .item-actions { flex-direction: row; }
 }
+
+/* ---------- Site content editor ---------- */
+.content-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; align-items: start; }
+.sections {
+  position: sticky; top: 16px; display: flex; flex-direction: column; gap: 4px;
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px;
+}
+.section-link {
+  font: inherit; text-align: start; cursor: pointer; border: 0; background: transparent;
+  padding: 8px 12px; border-radius: 8px; font-weight: 700; color: var(--text);
+}
+.section-link .ar { font-size: 0.8em; }
+.section-link:hover { background: var(--bg); }
+.section-link.active { background: var(--blue); color: #fff; }
+.section-link.active .ar { color: #d6e0ec; }
+
+.content-form { margin-bottom: 90px; }
+.field { margin-bottom: 20px; }
+.field-label { font-weight: 700; margin-bottom: 6px; }
+.field-label .ar { display: inline; margin-inline-start: 8px; }
+.bilingual { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.lang-input { position: relative; margin: 0; font-weight: 400; }
+.lang-tag {
+  position: absolute; top: -9px; inset-inline-start: 10px; z-index: 1;
+  background: var(--accent-light); color: var(--blue); font-size: 0.7rem; font-weight: 800;
+  padding: 0 6px; border-radius: 4px;
+}
+.field input[type="text"], .field input[type="url"], .field textarea, .field select {
+  display: block; width: 100%; padding: 10px 12px; font: inherit; line-height: 1.5;
+  border: 1px solid var(--line); border-radius: 8px; background: #fff;
+}
+.field textarea { resize: vertical; min-height: 70px; }
+.field select { max-width: 220px; }
+.field textarea:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.image-field { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.image-preview {
+  width: 96px; height: 96px; object-fit: contain; border-radius: 50%;
+  background: var(--bg); border: 1px solid var(--line);
+}
+
+.list { display: flex; flex-direction: column; gap: 8px; }
+.list-item { border: 1px solid var(--line); border-radius: 10px; background: #fbfcfe; }
+.list-item[open] { background: #fff; border-color: #c9d6e6; }
+.list-head {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; list-style: none;
+}
+.list-head::-webkit-details-marker { display: none; }
+.list-head::before { content: "▸"; color: var(--muted); transition: transform 0.15s; }
+.list-item[open] > .list-head::before { transform: rotate(90deg); }
+.list-title { flex: 1; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.list-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.list-body { padding: 4px 14px 2px; border-top: 1px solid var(--line); }
+.list-body .field:first-child { margin-top: 14px; }
+.icon-btn {
+  font: inherit; font-weight: 800; width: 30px; height: 30px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--line); background: #fff; color: var(--blue);
+}
+.icon-btn:disabled { opacity: 0.35; cursor: default; }
+.icon-btn.danger { color: var(--danger); }
+.add-btn { align-self: flex-start; }
+
+.savebar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap;
+  padding: 12px 20px; background: #fff; border-top: 1px solid var(--line);
+  box-shadow: 0 -6px 18px rgba(20, 53, 98, 0.08);
+}
+.savebar .msg { margin: 0; }
+.unsaved { color: #b26a00; font-weight: 700; margin-inline-end: auto; }
+
+@media (max-width: 760px) {
+  .content-layout { grid-template-columns: minmax(0, 1fr); }
+  .sections { position: static; flex-direction: row; overflow-x: auto; }
+  .section-link { white-space: nowrap; }
+  .bilingual { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .savebar { justify-content: center; }
+  .unsaved { width: 100%; text-align: center; margin: 0; }
+}

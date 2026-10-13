@@ -2,30 +2,25 @@
   "use strict";
 
   var STORAGE_KEY = "ufq-lang";
-  var dict = window.UFQ_I18N || {};
   var nodes = document.querySelectorAll("[data-i18n]");
 
-  // Arabic text is the HTML default: remember it so we can switch back.
-  dict.ar = {};
-  nodes.forEach(function (el) {
-    dict.ar[el.getAttribute("data-i18n")] = el.textContent.trim();
-  });
+  // All site text, in both languages, is embedded in the page by the server.
+  var data = JSON.parse(document.getElementById("ufq-content").textContent);
 
-  var titles = {
-    ar: "UFQ – United For Quality | الجودة وسلامة الغذاء",
-    en: "UFQ – United For Quality | Quality & Food Safety"
-  };
+  function lookup(path) {
+    return path.split(".").reduce(function (obj, key) { return obj == null ? obj : obj[key]; }, data.content);
+  }
 
   function setLang(lang) {
-    if (!dict[lang]) lang = "ar";
-    var t = dict[lang];
+    if (lang !== "en") lang = "ar";
+    var other = lang === "ar" ? "en" : "ar";
     nodes.forEach(function (el) {
-      var key = el.getAttribute("data-i18n");
-      if (t[key] !== undefined) el.textContent = t[key];
+      var value = lookup(el.getAttribute("data-i18n"));
+      if (value) el.textContent = value[lang] || value[other] || "";
     });
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
-    document.title = titles[lang];
+    document.title = data.title[lang];
     toggle.textContent = lang === "ar" ? "EN" : "عربي";
     try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) { /* storage blocked */ }
     renderMedia();
@@ -41,7 +36,7 @@
   if (!initial) {
     try { initial = localStorage.getItem(STORAGE_KEY); } catch (e) { initial = null; }
   }
-  setLang(initial || "ar");
+  setLang(initial || document.documentElement.lang);
 
   // Mobile menu
   var menuBtn = document.getElementById("menu-toggle");
@@ -71,7 +66,6 @@
     document.querySelectorAll("main section[id]").forEach(function (s) { observer.observe(s); });
   }
 
-  document.getElementById("year").textContent = new Date().getFullYear();
 
   // ---------------------------------------------------------------------
   // Certificates and videos uploaded from the admin page

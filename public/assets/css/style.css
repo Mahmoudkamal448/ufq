@@ -152,7 +152,7 @@ h1, h2, h3 { line-height: 1.35; margin: 0 0 0.5em; }
 }
 .cert-badge span { font-size: 0.85rem; font-weight: 700; letter-spacing: 2px; opacity: 0.85; }
 .cert-badge strong { font-size: 1.35rem; font-weight: 800; }
-.badge-green { background: var(--accent); }
+.badge-blue { background: var(--accent); }
 .cert-img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 16px; }
 .cert-card figcaption { font-weight: 700; color: var(--blue); font-size: 0.95rem; }
 
@@ -179,6 +179,13 @@ h1, h2, h3 { line-height: 1.35; margin: 0 0 0.5em; }
 .contact h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); }
 .contact p { opacity: 0.92; }
 .contact-buttons { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 26px; }
+.socials { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 22px; }
+.social {
+  padding: 6px 18px; border-radius: 999px; font-weight: 700; font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.4);
+}
+.social:hover { background: rgba(255, 255, 255, 0.3); }
+.address { margin-top: 18px; white-space: pre-line; }
 
 /* ---------- Footer ---------- */
 .site-footer { background: var(--blue-dark); color: #b9c8d6; padding: 36px 0; text-align: center; }
