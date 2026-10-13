@@ -26,10 +26,10 @@ cp .env.example .env        # then open .env and set ADMIN_PASSWORD
 docker compose up -d --build
 ```
 
-- Site: <http://localhost:8080>
-- Admin: <http://localhost:8080/admin/>
+- Site: <http://localhost:3000>
+- Admin: <http://localhost:3000/admin/>
 
-Port 8080 already in use? Change `WEB_PORT` in `.env` (e.g. `WEB_PORT=8090`) and run the command again.
+Port 3000 already in use? Change `WEB_PORT` in `.env` (e.g. `WEB_PORT=3001`) and run the command again.
 
 Stop it with `docker compose down`. (Your uploads are kept; see below.)
 
@@ -38,7 +38,7 @@ Stop it with `docker compose down`. (Your uploads are kept; see below.)
 | Setting | What it does | Default |
 |---|---|---|
 | `ADMIN_PASSWORD` | Password for `/admin/`. **Required**, at least 8 characters. Changing it logs everyone out. | – |
-| `WEB_PORT` | Port on the machine where the site is published | `8080` |
+| `WEB_PORT` | Port on the machine where the site is published | `3000` |
 | `MAX_UPLOAD_MB` | Largest upload allowed, in MB | `500` |
 | `SESSION_HOURS` | How long an admin stays logged in | `12` |
 
@@ -125,7 +125,7 @@ Without Docker (Node.js 20+), in PowerShell:
 
 ```powershell
 npm install
-$env:ADMIN_PASSWORD="MyStrongPass123"; $env:DATA_DIR=".\data"; $env:PORT="8080"
+$env:ADMIN_PASSWORD="MyStrongPass123"; $env:DATA_DIR=".\data"; $env:PORT="3000"
 npm start
 ```
 
