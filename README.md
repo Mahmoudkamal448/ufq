@@ -64,6 +64,31 @@ docker run --rm -v ufq-website_ufq-data:/data -v "$PWD":/backup alpine tar xzf /
 > Tip: big video files make backups and servers heavy. For long videos, uploading to YouTube and
 > pasting the link in the admin page is usually better.
 
+## Deploy on an AWS EC2 server (one script)
+
+Works on **Ubuntu 22.04/24.04** (recommended) and **Amazon Linux 2023**. On the server:
+
+```bash
+sudo apt-get install -y git      # Amazon Linux: sudo dnf install -y git
+git clone https://github.com/Mahmoudkamal448/ufq.git
+cd ufq
+sudo bash scripts/deploy-aws.sh
+```
+
+The script installs Docker, adds swap on small instances, asks for the admin password and
+(optionally) a domain name, then builds and starts the site:
+
+- **No domain:** the site is served on `http://<server-ip>` (port 80).
+- **With a domain:** point its DNS A record at the server first; the site is served on
+  `https://<domain>` with a free, auto-renewing certificate (Caddy, `docker-compose.https.yml`).
+
+In the AWS console, the instance's **Security Group** must allow inbound **HTTP (80)** and, with a
+domain, **HTTPS (443)** from `0.0.0.0/0`. Give the instance an **Elastic IP** so its address doesn't
+change when it restarts.
+
+**To update the site later**, run `sudo bash scripts/deploy-aws.sh` again. It pulls the latest code
+and rebuilds; uploads, admin edits and settings are kept.
+
 ## Moving it to other servers
 
 **Option A – copy the project:** clone this repo on the server, create `.env`, run `docker compose up -d --build`.

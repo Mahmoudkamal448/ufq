@@ -1,0 +1,23 @@
+# Adds automatic HTTPS (free Let's Encrypt certificate) in front of the site.
+# Used when DOMAIN is set in .env (scripts/deploy-aws.sh sets this up), via:
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.https.yml
+# The domain must already point (DNS A record) at this server, and ports
+# 80 and 443 must be open.
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: ufq-caddy
+    restart: unless-stopped
+    command: caddy reverse-proxy --from ${DOMAIN:?set DOMAIN in .env} --to web:3000
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Certificates are kept here so they aren't requested again on every restart
+      - caddy-data:/data
+    depends_on:
+      - web
+
+volumes:
+  caddy-data:
