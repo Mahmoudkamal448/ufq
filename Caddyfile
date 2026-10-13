@@ -1,0 +1,13 @@
+# HTTPS in front of the website (used by docker-compose.https.yml).
+# Caddy gets and renews a free Let's Encrypt certificate for DOMAIN by itself.
+# DOMAIN is either your own domain or <ip-with-dashes>.sslip.io (set by scripts/deploy-aws.sh).
+
+{$DOMAIN} {
+	encode gzip
+	reverse_proxy web:3000
+}
+
+# Someone typing the bare IP address is sent to the HTTPS address
+http://{$PUBLIC_IP} {
+	redir https://{$DOMAIN}{uri} permanent
+}

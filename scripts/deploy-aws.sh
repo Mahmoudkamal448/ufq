@@ -8,6 +8,9 @@
 #   cd ufq
 #   sudo bash scripts/deploy-aws.sh
 #
+# The site is served over HTTPS with a free certificate: on your own domain if you
+# give one, otherwise on https://<ip-with-dashes>.sslip.io.
+#
 # To update the site later (pulls the latest code and rebuilds), run the same command again.
 # Uploads, admin edits and settings are kept.
 #
@@ -105,8 +108,25 @@ if [ -d .git ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 4. Settings (.env) – asked only the first time
+# 4. Settings (.env) – password and domain are asked only the first time
 # ---------------------------------------------------------------------------
+TOKEN="$(curl -fsS -m 2 -X PUT http://169.254.169.254/latest/api/token \
+  -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' 2>/dev/null || true)"
+PUBLIC_IP="$(curl -fsS -m 2 -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || true)"
+[ -n "$PUBLIC_IP" ] || PUBLIC_IP="$(curl -fsS -m 3 https://checkip.amazonaws.com 2>/dev/null || true)"
+[[ "$PUBLIC_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+  || die "couldn't find this server's public IP. Does the instance have a public IP / Elastic IP?"
+
+# Write KEY=value into .env, replacing any old value
+set_env() {
+  local key="$1" value="$2" tmp
+  tmp="$(mktemp)"
+  grep -v "^${key}=" .env > "$tmp" || true
+  printf '%s=%s\n' "$key" "$value" >> "$tmp"
+  mv "$tmp" .env
+}
+
 if [ ! -f .env ]; then
   say "First-time setup"
   cp .env.example .env
@@ -119,39 +139,34 @@ if [ ! -f .env ]; then
     [ "$PASS" = "$PASS2" ] && break
     warn "the two passwords are different, try again"
   done
-
-  echo
-  echo "Do you have a domain name for the site (e.g. ufq-eg.com)?"
-  echo "If yes, point its DNS 'A record' to this server's public IP first, and the site"
-  echo "will get free HTTPS automatically. If not, just press Enter (the site will use the IP)."
-  read -r -p "Domain (or Enter to skip): " DOMAIN
-  DOMAIN="$(echo "$DOMAIN" | tr -d '[:space:]' | sed -E 's#^https?://##; s#/.*$##')"
-
-  # Write values with a small helper so special characters in the password are safe
-  set_env() {
-    local key="$1" value="$2" tmp
-    tmp="$(mktemp)"
-    grep -v "^${key}=" .env > "$tmp" || true
-    printf '%s=%s\n' "$key" "$value" >> "$tmp"
-    mv "$tmp" .env
-  }
   # Single quotes: Docker Compose then takes the password literally (e.g. a "$" in it)
   set_env ADMIN_PASSWORD "'$PASS'"
-  if [ -n "$DOMAIN" ]; then
-    set_env DOMAIN "$DOMAIN"
-    # The app is only reachable through Caddy (HTTPS); Caddy uses ports 80 and 443.
-    set_env WEB_PORT "127.0.0.1:3000"
-    set_env COMPOSE_FILE "docker-compose.yml:docker-compose.https.yml"
-  else
-    set_env WEB_PORT "80"
-  fi
-  chmod 600 .env
-  chown "$APP_USER" .env 2>/dev/null || true
+
+  echo
+  echo "Do you have your own domain name for the site (e.g. ufq-eg.com)?"
+  echo "  - Yes: point its DNS 'A record' to $PUBLIC_IP first, then type it here."
+  echo "  - No:  just press Enter. The site gets a free HTTPS address based on the IP:"
+  echo "         https://${PUBLIC_IP//./-}.sslip.io"
+  read -r -p "Domain (or Enter to skip): " DOMAIN
+  DOMAIN="$(echo "$DOMAIN" | tr -d '[:space:]' | sed -E 's#^https?://##; s#/.*$##')"
+  if [ -n "$DOMAIN" ]; then set_env DOMAIN "$DOMAIN"; fi
 else
   say "Using the existing settings in .env (delete .env and run again to start over)"
 fi
 
+# HTTPS is always on. Without your own domain, use <ip-with-dashes>.sslip.io: a free
+# public name that points to this IP, so a real (trusted) certificate can be issued.
 DOMAIN="$(grep -E '^DOMAIN=' .env | cut -d= -f2- || true)"
+if [ -z "$DOMAIN" ] || [[ "$DOMAIN" == *.sslip.io ]]; then
+  DOMAIN="${PUBLIC_IP//./-}.sslip.io"   # recalculated in case the IP changed
+fi
+set_env DOMAIN "$DOMAIN"
+set_env PUBLIC_IP "$PUBLIC_IP"
+# The app is only reachable through Caddy, which listens on ports 80 and 443.
+set_env WEB_PORT "127.0.0.1:3000"
+set_env COMPOSE_FILE "docker-compose.yml:docker-compose.https.yml"
+chmod 600 .env
+chown "$APP_USER" .env 2>/dev/null || true
 
 # ---------------------------------------------------------------------------
 # 5. Build and start
@@ -168,38 +183,43 @@ done
 [ -n "$ok" ] || { docker compose logs --tail 40 web; die "the website didn't start – see the log above"; }
 
 # ---------------------------------------------------------------------------
-# 6. Done
+# 6. HTTPS certificate check, then done
 # ---------------------------------------------------------------------------
-TOKEN="$(curl -fsS -m 2 -X PUT http://169.254.169.254/latest/api/token \
-  -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' 2>/dev/null || true)"
-PUBLIC_IP="$(curl -fsS -m 2 -H "X-aws-ec2-metadata-token: $TOKEN" \
-  http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || true)"
-[ -n "$PUBLIC_IP" ] || PUBLIC_IP="$(curl -fsS -m 3 https://checkip.amazonaws.com 2>/dev/null || echo YOUR-SERVER-IP)"
-
-if [ -n "$DOMAIN" ]; then
-  URL="https://$DOMAIN"
+if [[ "$DOMAIN" != *.sslip.io ]]; then
   DNS_IP="$(getent ahostsv4 "$DOMAIN" 2>/dev/null | awk 'NR==1 {print $1}')"
   if [ "$DNS_IP" != "$PUBLIC_IP" ]; then
     warn "$DOMAIN points to '${DNS_IP:-nothing}', not to this server ($PUBLIC_IP)."
     warn "Fix the domain's DNS A record; HTTPS starts working a few minutes after it's correct."
   fi
-else
-  URL="http://$PUBLIC_IP"
 fi
 
-cat <<EOF
+say "Getting the HTTPS certificate (up to a minute or two)"
+cert=""
+for _ in $(seq 1 30); do
+  if curl -fsS -o /dev/null -m 5 --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/healthz" 2>/dev/null; then cert=1; break; fi
+  sleep 3
+done
+if [ -z "$cert" ]; then
+  warn "The certificate isn't ready yet. Most often ports 80/443 are not open in the AWS Security Group."
+  warn "Latest HTTPS log lines:"
+  docker compose logs --tail 15 caddy || true
+fi
+
+URL="https://$DOMAIN"
+cat <<DONE
 
 ============================================================
   UFQ website is running ✔
 
   Site:   $URL
   Admin:  $URL/admin/
+  (http://$PUBLIC_IP also works and redirects to the address above)
 
   In the AWS console, the instance's Security Group must allow
-  inbound HTTP (port 80)$( [ -n "$DOMAIN" ] && echo " and HTTPS (port 443)" ) from anywhere (0.0.0.0/0).
+  inbound HTTP (port 80) and HTTPS (port 443) from anywhere (0.0.0.0/0).
 
   Update to the latest code:   sudo bash scripts/deploy-aws.sh
-  See the logs:                docker compose logs -f
-  Change settings/password:    nano .env   then   docker compose up -d
+  See the logs:                sudo docker compose logs -f
+  Change the admin password:   sudo nano .env   then   sudo docker compose up -d
 ============================================================
-EOF
+DONE

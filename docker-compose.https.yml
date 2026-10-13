@@ -1,19 +1,23 @@
-# Adds automatic HTTPS (free Let's Encrypt certificate) in front of the site.
-# Used when DOMAIN is set in .env (scripts/deploy-aws.sh sets this up), via:
+# Adds HTTPS (free Let's Encrypt certificate, renewed automatically) in front
+# of the site. scripts/deploy-aws.sh turns this on by putting in .env:
 #   COMPOSE_FILE=docker-compose.yml:docker-compose.https.yml
-# The domain must already point (DNS A record) at this server, and ports
-# 80 and 443 must be open.
+#   DOMAIN=...        your domain, or <ip-with-dashes>.sslip.io if you have none
+#   PUBLIC_IP=...     the server's public IP
+# Ports 80 and 443 must be open to the internet.
 
 services:
   caddy:
     image: caddy:2-alpine
     container_name: ufq-caddy
     restart: unless-stopped
-    command: caddy reverse-proxy --from ${DOMAIN:?set DOMAIN in .env} --to web:3000
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+      PUBLIC_IP: ${PUBLIC_IP:?set PUBLIC_IP in .env}
     ports:
       - "80:80"
       - "443:443"
     volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
       # Certificates are kept here so they aren't requested again on every restart
       - caddy-data:/data
     depends_on:

@@ -76,15 +76,19 @@ sudo bash scripts/deploy-aws.sh
 ```
 
 The script installs Docker, adds swap on small instances, asks for the admin password and
-(optionally) a domain name, then builds and starts the site:
+(optionally) a domain name, then builds and starts the site. **The site is always served over HTTPS**
+with a free, trusted, auto-renewing Let's Encrypt certificate (Caddy, `docker-compose.https.yml` +
+`Caddyfile`). You don't need to buy or upload a certificate:
 
-- **No domain:** the site is served on `http://<server-ip>` (port 80).
-- **With a domain:** point its DNS A record at the server first; the site is served on
-  `https://<domain>` with a free, auto-renewing certificate (Caddy, `docker-compose.https.yml`).
+- **No domain:** the site gets the free address `https://<ip-with-dashes>.sslip.io`
+  (e.g. `https://3-120-45-67.sslip.io` for IP `3.120.45.67`). [sslip.io](https://sslip.io) is a free
+  service whose names point to the IP written in them, which is what makes a real certificate possible.
+- **With a domain:** point its DNS A record at the server first; the site is served on `https://<domain>`.
 
-In the AWS console, the instance's **Security Group** must allow inbound **HTTP (80)** and, with a
-domain, **HTTPS (443)** from `0.0.0.0/0`. Give the instance an **Elastic IP** so its address doesn't
-change when it restarts.
+Visiting `http://<server-ip>` redirects to the HTTPS address. In the AWS console, the instance's
+**Security Group** must allow inbound **HTTP (80)** and **HTTPS (443)** from `0.0.0.0/0` (port 80 is
+needed to get the certificate). Give the instance an **Elastic IP** so its address doesn't change; if it
+does change, re-run the script and the sslip.io address follows the new IP.
 
 **To update the site later**, run `sudo bash scripts/deploy-aws.sh` again. It pulls the latest code
 and rebuilds; uploads, admin edits and settings are kept.
